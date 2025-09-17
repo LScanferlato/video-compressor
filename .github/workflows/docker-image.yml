@@ -20,7 +20,7 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Build Docker image
-      run: docker build -t lscanferlato/countdown:latest .
+      run: docker build -t lscanferlato/video-compressor:latest .
 
     - name: Push Docker image
       run: docker push lscanferlato/video-compressor:latest
