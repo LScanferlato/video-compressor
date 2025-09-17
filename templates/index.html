@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎥 Compressore Video </title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --gray: #6b7280;
+      --light: #f9fafb;
+      --border: #d1d5db;
+      --card: #ffffff;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #e0f2fe 0%, #f0fdf4 100%);
+      margin: 0;
+      padding: 40px 20px;
+      color: #1f2937;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 1.8rem;
+    }
+    .content {
+      padding: 30px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #374151;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: var(--primary-dark); }
+    .btn-danger {
+      background: #dc2626;
+    }
+    .btn-danger:hover { background: #b91c1c; }
+    .progress-container {
+      margin: 20px 0;
+      display: none;
+    }
+    .progress-bar {
+      height: 12px;
+      background: #e5e7eb;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .progress-text {
+      text-align: center;
+      margin: 8px 0;
+      font-size: 0.9rem;
+      color: var(--gray);
+    }
+    .custom-scale {
+      display: none;
+      margin-top: 10px;
+      padding: 15px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--gray);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      background: var(--light);
+    }
+    @media (max-width: 600px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎥 Compressore Video Avanzato</h1>
+    </header>
+
+    <div class="content">
+      <form id="uploadForm" method="POST" action="/compress" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="file">Seleziona il video</label>
+          <input type="file" name="file" id="file" accept="video/*" required />
+        </div>
+
+        <div class="grid">
+          <div class="form-group">
+            <label for="resolution">Risoluzione</label>
+            <select name="width" id="resolution" onchange="toggleCustomScale()">
+              <option value="original">Originale</option>
+              <option value="640">640x360 (SD)</option>
+              <option value="854">854x480 (SD+)</option>
+              <option value="1280" selected>1280x720 (HD)</option>
+              <option value="1920">1920x1080 (Full HD)</option>
+              <option value="2560">2560x1440 (2K)</option>
+              <option value="3840">3840x2160 (4K)</option>
+              <option value="custom">🔧 Personalizzata</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="crf">Qualità (CRF: 18-30)</label>
+            <div id="crf-value" style="text-align:center; font-weight:600; color:var(--primary);">28</div>
+            <input type="range" name="crf" id="crf" min="18" max="30" value="28"
+                   oninput="document.getElementById('crf-value').textContent = this.value" />
+          </div>
+        </div>
+
+        <div id="custom-scale" class="custom-scale">
+          <div class="grid">
+            <div class="form-group">
+              <label for="custom_width">Larghezza (px)</label>
+              <input type="number" name="custom_width" id="custom_width" placeholder="es. 1280" />
+            </div>
+            <div class="form-group">
+              <label for="custom_height">Altezza (px)</label>
+              <input type="number" name="custom_height" id="custom_height" placeholder="es. 720" />
+            </div>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="form-group">
+            <label for="start_time">Inizio (secondi)</label>
+            <input type="number" name="start_time" id="start_time" min="0" value="0" />
+          </div>
+          <div class="form-group">
+            <label for="duration">Durata (secondi)</label>
+            <input type="number" name="duration" id="duration" min="1" />
+          </div>
+        </div>
+
+        <button type="submit" class="btn">🚀 Avvia Compressione</button>
+      </form>
+
+      <div id="progress-container" class="progress-container">
+        <div class="progress-bar">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+        <div id="progress-text">0%</div>
+        <button id="cancel-btn" class="btn btn-danger" onclick="cancelCompression()">⏹️ Interrompi</button>
+      </div>
+    </div>
+
+    <footer>
+      Powered by Docker + FFmpeg
+    </footer>
+  </div>
+
+  <script>
+    function toggleCustomScale() {
+      const sel = document.getElementById('resolution');
+      const div = document.getElementById('custom-scale');
+      div.style.display = sel.value === 'custom' ? 'block' : 'none';
+    }
+
+    document.getElementById('uploadForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+
+      document.getElementById('progress-container').style.display = 'block';
+      document.getElementById('progress-fill').style.width = '0%';
+      document.getElementById('progress-text').textContent = 'Avvio...';
+
+      await fetch('/compress', {
+        method: 'POST',
+        body: formData
+      });
+
+      const interval = setInterval(async () => {
+        const res = await fetch('/progress');
+        const data = await res.json();
+
+        document.getElementById('progress-fill').style.width = data.progress + '%';
+        document.getElementById('progress-text').textContent = data.progress + '%';
+
+        if (data.status === 'completato') {
+          clearInterval(interval);
+          document.getElementById('progress-text').textContent = '✅ Completato!';
+          setTimeout(() => {
+            window.location.href = '/download/' + encodeURIComponent(data.file);
+          }, 1000);
+        } else if (data.status === 'fallito') {
+          clearInterval(interval);
+          document.getElementById('progress-text').textContent = '❌ Errore';
+          alert("Errore: " + (data.error || "Sconosciuto"));
+        }
+      }, 500);
+    };
+
+    async function cancelCompression() {
+      if (confirm("Interrompere la compressione?")) {
+        await fetch('/cancel', { method: 'POST' });
+        document.getElementById('progress-text').textContent = '⏹️ Interrotto';
+        alert("Compressione interrotta.");
+      }
+    }
+  </script>
+</body>
+</html>
+
